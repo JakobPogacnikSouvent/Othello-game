@@ -52,19 +52,27 @@ public class Igra {
 		/*
 		 * TODO: If on your turn you cannot outflank and flip at least one opposing disk, your turn is forfeited and your opponent moves again
 		 * na koncu naredi check for available moves
-		 */
-		boolean isValidMove = false; // Flip flag when we flip an opposing disc. If we check all directions without flip the move is not valid.
+		 */		
+		if (!((0 <= poteza.getX()) &&  (poteza.getX() < 8) && (0 <= poteza.getY()) && (poteza.getY() < 8))) return false;
+		if (board[poteza.getX()][poteza.getY()] != Empty) return false;
 		
 		List<Poteza> toFlip = findFlips(poteza);
-		if (toFlip.size() > 0) {
-			isValidMove = true;
-			
+		if (toFlip.size() > 0 ) {
+
+			board[poteza.getX()][poteza.getY()] = activePlayer;
+
 			for (Poteza p : toFlip) {
 				turnStone(p);
 			}
+
+			// TODO: Check if new current player has available moves.
+			// TODO: Check if board is full
+			flipPlayers();
+			
+			return true;
 		}
 		
-		return isValidMove;
+		return false;
 	}
 	
 	private boolean turnStone(Poteza p) {
@@ -127,16 +135,14 @@ public class Igra {
 					} else if (board[x + k*i][y + k*j] == Empty) {
 						// finishedSuccessfully = false
 						break;
-					}
-					
+					}				
+				}	
+				
 				if (finishedSuccessfully) {
 					toFlip.addAll(currentChain);
 				}
-				
-				}	
 			}
 		}
-		
 		return toFlip;
 	}
 }
