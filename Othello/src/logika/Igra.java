@@ -75,6 +75,57 @@ public class Igra {
 		return false;
 	}
 	
+	private boolean[][] legalForPlayer(int player, int[][][] board) {
+		/*
+		 * Sestavi 8x8 matriko boolean vrednosti, ki nam pove, če na določeno mesto igralec "player" lahko igra potezo.
+		 * POZOR: Ta kot argument vzame 8x8x2 matriko, ki jo ustvari funkcija "numberOfValidMoves."
+		 */
+		boolean[][] boolBoard = new boolean[8][8];
+		for (int i=0; i<8; i++) {
+			for (int j=0; j<8; j++) {
+				if (board[i][j][player-1] != 0) boolBoard[i][j] = true;
+			}
+		}
+		return boolBoard;
+	}
+	
+	private int[][][] numberOfValidMoves(int[][] board) {
+		/*
+		 * Sestavi 8x8x2 matriko, ki ima na (i, j, k)-tem mestu število, ki nam pove koliko kamenčkov obrne poteza igralca (k + 1),
+		 * če ta postavi kamenček na (i, j)-to mesto.
+		 * NE POZABI: Igralcema pripadata števili 1 in 2, zato dobimo zamik pri tretji komponenti matrike.
+		 */
+		int[][][] boardNew = new int[8][8][2];
+		int[] smeri = {-1, 0, 1};
+		int[] igralca = {1, 2};
+		for (int i=0; i<8; i++) {
+			for (int j=0; j<8; j++) {
+				if (board[i][j] != 0) continue;
+				for (int igr : igralca) {
+					for (int k : smeri) {
+						for (int h : smeri) {
+							if (k == 0 && h == 0) continue; // Če se ne premaknemo, nadaljuj.
+							int q = 1; 						// Večkratnik koraka
+							int counter = 0;					
+							while (0 <= i + q*k && i + q*k < 8 && 0 <= j + q*h && j + q*h < 8) {
+								if (board[i+q*k][j+q*h] == (igr + 1)%2) {
+									counter += 1;
+									q++;
+								}
+								else if (board[i+q*k][j+q*h] == igr && counter > 0) {
+									boardNew[i][j][igr-1] += counter;
+									break;
+								}
+								else break;
+							}
+						}
+					}
+				}
+			}
+		}
+		return boardNew;
+	}
+	
 	private boolean turnStone(Poteza p) {
 		/*
 		 * Changes stone on (x, y) from Player1 to Player2 or vice versa.
