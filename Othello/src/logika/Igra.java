@@ -7,18 +7,42 @@ import splosno.Poteza;
 
 public class Igra {
 	/*
-	 * Class to hold board state
+	 * Class to hold game state
 	 */
 	
 	private static int Player1; // The number we will use to mark P1 with
 	private static int Player2; // The number we will use to mark P2 with
 	private static int Empty; // The number we will mark empty spaces with	
 	
+	private int finalScoreP1;
+	private int finalScoreP2;
+	
 	private int activePlayer;
 	private int notActivePlayer;
 	
 	private int[][] board;
 
+	private boolean isOver;
+	
+	public int[][] getBoard() {
+		return board;
+	}
+	
+	public boolean[][] getLegalMoves() {
+		return legalForPlayer(board);
+	}
+	
+	public int getActivePlayer() {
+		return activePlayer;
+	}
+	
+	public int getNotActivePlayer() {
+		return notActivePlayer;
+	}
+	
+	public boolean getIsOver() {
+		return isOver;
+	}
 	
 	public Igra() {
 		Player1 = 1;
@@ -29,6 +53,8 @@ public class Igra {
 		notActivePlayer = Player2;
 		
 		board = innitBoard();
+		
+		isOver = false;
 	}
 	
 	private int[][] innitBoard() {
@@ -48,11 +74,7 @@ public class Igra {
 		return Arrays.deepToString(board).replace("], ", "],\n");
 	}
 	
-	public boolean odigraj(Poteza poteza) {
-		/*
-		 * TODO: If on your turn you cannot outflank and flip at least one opposing disk, your turn is forfeited and your opponent moves again
-		 * na koncu naredi check for available moves
-		 */		
+	public boolean odigraj(Poteza poteza) {	
 		if (!((0 <= poteza.getX()) &&  (poteza.getX() < 8) && (0 <= poteza.getY()) && (poteza.getY() < 8))) return false;
 		if (board[poteza.getX()][poteza.getY()] != Empty) return false;
 		
@@ -65,65 +87,18 @@ public class Igra {
 				turnStone(p);
 			}
 
-			// TODO: Check if new current player has available moves.
-			// TODO: Check if board is full
-			flipPlayers();
-			
+			if (hasLegalMoves(notActivePlayer, board)) {
+				
+				flipPlayers();				
+			} else if (! hasLegalMoves(board)) {
+				// Ko se zgodi da noben igralec nima veljavnih potez je igre konec
+				
+				endGame(board);
+			}			
 			return true;
 		}
 		
 		return false;
-	}
-	
-	private boolean[][] legalForPlayer(int player, int[][][] board) {
-		/*
-		 * Sestavi 8x8 matriko boolean vrednosti, ki nam pove, če na določeno mesto igralec "player" lahko igra potezo.
-		 * POZOR: Ta kot argument vzame 8x8x2 matriko, ki jo ustvari funkcija "numberOfValidMoves."
-		 */
-		boolean[][] boolBoard = new boolean[8][8];
-		for (int i=0; i<8; i++) {
-			for (int j=0; j<8; j++) {
-				if (board[i][j][player-1] != 0) boolBoard[i][j] = true;
-			}
-		}
-		return boolBoard;
-	}
-	
-	private int[][][] numberOfValidMoves(int[][] board) {
-		/*
-		 * Sestavi 8x8x2 matriko, ki ima na (i, j, k)-tem mestu število, ki nam pove koliko kamenčkov obrne poteza igralca (k + 1),
-		 * če ta postavi kamenček na (i, j)-to mesto.
-		 * NE POZABI: Igralcema pripadata števili 1 in 2, zato dobimo zamik pri tretji komponenti matrike.
-		 */
-		int[][][] boardNew = new int[8][8][2];
-		int[] smeri = {-1, 0, 1};
-		int[] igralca = {1, 2};
-		for (int i=0; i<8; i++) {
-			for (int j=0; j<8; j++) {
-				if (board[i][j] != 0) continue;
-				for (int igr : igralca) {
-					for (int k : smeri) {
-						for (int h : smeri) {
-							if (k == 0 && h == 0) continue; // Če se ne premaknemo, nadaljuj.
-							int q = 1; 						// Večkratnik koraka
-							int counter = 0;					
-							while (0 <= i + q*k && i + q*k < 8 && 0 <= j + q*h && j + q*h < 8) {
-								if (board[i+q*k][j+q*h] == (igr + 1)%2) {
-									counter += 1;
-									q++;
-								}
-								else if (board[i+q*k][j+q*h] == igr && counter > 0) {
-									boardNew[i][j][igr-1] += counter;
-									break;
-								}
-								else break;
-							}
-						}
-					}
-				}
-			}
-		}
-		return boardNew;
 	}
 	
 	private boolean turnStone(Poteza p) {
@@ -159,13 +134,20 @@ public class Igra {
 		
 		return activePlayer;
 	}
-	
-	private List<Poteza> findFlips(Poteza p) {
+
+	private List<Poteza> findFlips(Poteza p, int player) {
 		/*
-		 * Returns all stones that are to be flipped if activePlayer would play a move on (x, y)
+		 * Returns all stones that are to be flipped if player would play a move on (x, y)
 		 */
 		int x = p.getX();
 		int y = p.getY();
+		int notPlayer;
+		
+		if (player == 1) {
+			notPlayer = 2;
+		} else {
+			notPlayer = 1;
+		}
 		
 		List<Poteza> toFlip = new ArrayList<Poteza>();
 		int[] t = {-1, 0, 1};
@@ -177,10 +159,10 @@ public class Igra {
 				boolean finishedSuccessfully = false;
 				
 				while ((0 <= x + k*i) &&  (x + k*i < 8) && (0 <= y + k*j) && (y + k*j < 8)) {
-					if (board[x + k*i][y + k*j] == notActivePlayer) {
+					if (board[x + k*i][y + k*j] == notPlayer) {
 						currentChain.add(new Poteza(x + k*i, y + k*j));						
 						k++;
-					} else if (board[x + k*i][y + k*j] == activePlayer) {
+					} else if (board[x + k*i][y + k*j] == player) {
 						finishedSuccessfully = true;
 						break;
 					} else if (board[x + k*i][y + k*j] == Empty) {
@@ -196,4 +178,112 @@ public class Igra {
 		}
 		return toFlip;
 	}
+	
+	private List<Poteza> findFlips(Poteza p) {
+		/*
+		 * Default to active player
+		 */
+		return findFlips(p, activePlayer);
+	}
+	
+	private int[][][] numberOfValidMoves(int[][] board) {
+		/*
+		 * Sestavi 8x8x2 matriko, ki ima na (i, j, k)-tem mestu število, ki nam pove koliko kamenčkov obrne poteza igralca (k + 1),
+		 * če ta postavi kamenček na (i, j)-to mesto.
+		 * NE POZABI: Igralcema pripadata števili 1 in 2, zato dobimo zamik pri tretji komponenti matrike.
+		 */
+		
+		int[][][] boardNew = new int[8][8][2];
+		int[] igralca = {1, 2};
+		
+		for (int x=0; x<8; x++) {
+			for (int y=0; y<8; y++) {
+				
+				if (board[x][y] != 0) continue;
+				
+				for (int igr : igralca) {
+					
+					int n = findFlips(new Poteza(x, y), igr).size();
+					boardNew[x][y][igr-1] = n;
+					
+				}
+			}
+		}
+		return boardNew;
+	}
+
+	private boolean[][] legalForPlayer(int player, int[][] board) {
+		/*
+		 * Sestavi 8x8 matriko boolean vrednosti, ki nam pove, če na določeno mesto igralec "player" lahko igra potezo.
+		 */
+		
+		boolean[][] boolBoard = new boolean[8][8];
+		
+		int[][][] validBoard = numberOfValidMoves(board);
+		
+		for (int i=0; i<8; i++) {
+			for (int j=0; j<8; j++) {
+				
+				if (validBoard[i][j][player-1] != 0) boolBoard[i][j] = true;
+			}
+		}
+		return boolBoard;
+	}	
+
+	private boolean[][] legalForPlayer(int[][] board) {
+		return legalForPlayer(activePlayer, board);
+	}
+
+	
+	private boolean hasLegalMoves(int player, int[][] board) {
+		/*
+		 * Returns true if player has legal moves or false otherwise
+		 */
+		
+		boolean[][] boolBoard = legalForPlayer(player, board);
+				
+		for (int i=0; i<8; i++) {
+			for (int j=0; j<8; j++) {
+				
+				if (boolBoard[i][j]) return true;
+			}
+		}
+		return false;
+		
+	}
+	
+	private boolean hasLegalMoves(int[][] board) {
+		return hasLegalMoves(activePlayer, board);
+	}
+
+	private int endGame(int[][] board) {
+		/*
+		 * Nastavi final score in vrne zmagovalca
+		 */
+		finalScoreP1 = 0;
+		finalScoreP2 = 0;
+		
+		for (int i=0; i<8; i++) {
+			for (int j=0; j<8; j++) {
+				if (board[i][j] == Player1) {
+					finalScoreP1++;
+				} else if (board[i][j] == Player2) {
+					finalScoreP2++;
+				}
+			}
+		}
+
+		isOver = true;
+		
+		if (finalScoreP1 > finalScoreP2) {
+			return Player1;
+		} else if (finalScoreP1 < finalScoreP2) {
+			return Player2;
+		} else {
+			// Izenačeno
+			return 3;
+		}
+		
+	}
+	
 }
