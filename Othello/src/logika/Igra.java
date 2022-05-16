@@ -10,33 +10,52 @@ public class Igra {
 	 * Class to hold game state
 	 */
 	
-	private static int Player1; // The number we will use to mark P1 with
-	private static int Player2; // The number we will use to mark P2 with
-	private static int Empty; // The number we will mark empty spaces with	
+	private static byte Player1; // The number we will use to mark P1 with
+	private static byte Player2; // The number we will use to mark P2 with
+	private static byte Empty; // The number we will mark empty spaces with	
 	
 	private int finalScoreP1;
 	private int finalScoreP2;
 	
-	private int activePlayer;
-	private int notActivePlayer;
+	private byte activePlayer;
+	private byte notActivePlayer;
 	
-	private int[][] board;
+	private byte[][] board;
 
 	private boolean isOver;
 	
-	public int[][] getBoard() {
+	public byte[][] getBoard() {
 		return board;
 	}
-	
-	public boolean[][] getLegalMoves() {
-		return legalForPlayer(board);
+
+	public boolean[][] getLegalMoves(byte player) {
+		return legalForPlayer(player, board);
 	}
 	
-	public int getActivePlayer() {
+	public static boolean[][] getLegalMoves(byte player, byte[][] board) {
+		return legalForPlayer(player, board);
+	}
+	
+	public static List<Poteza> getLegalMovesList(byte player, byte[][] board) {
+		boolean[][] legalMoves = getLegalMoves(player, board);
+		
+		List<Poteza> possible = new ArrayList<Poteza>();
+
+		for (int x=0; x<8; x++) {
+			for (int y=0; y<8; y++) {
+				if (legalMoves[x][y]) {
+					possible.add(new Poteza(x, y));
+				}
+			}
+		}
+		return possible;
+	}
+	
+	public byte getActivePlayer() {
 		return activePlayer;
 	}
 	
-	public int getNotActivePlayer() {
+	public byte getNotActivePlayer() {
 		return notActivePlayer;
 	}
 	
@@ -44,10 +63,23 @@ public class Igra {
 		return isOver;
 	}
 	
+	public byte getWinner() {
+		// Returns the winner of the game. If game is still in progress returns 0
+		
+		if (!isOver) return 0;
+		
+		if (finalScoreP1 > finalScoreP2) {
+			return Player1;
+		} else if (finalScoreP1 < finalScoreP2) {
+			return Player2;
+		} else {
+			// Izenačeno
+			return 3;
+		}
+	}
+	
 	public Igra() {
-		Player1 = 1;
-		Player2 = 2;
-		Empty = 0;
+		innitStatics();
 		
 		activePlayer = Player1;
 		notActivePlayer = Player2;
@@ -57,55 +89,94 @@ public class Igra {
 		isOver = false;
 	}
 	
-	private int[][] innitBoard() {
+	public Igra(byte[][] board, byte activePlayer) {
+		// Create a game object from existing board state
+		innitStatics();
+		
+		this.activePlayer = activePlayer;
+		this.notActivePlayer = (byte) ((activePlayer % 2) + 1);
+		
+		this.board = board;
+		
+		// If game is created from existing board state it is possible for it to be created in a finished state
+		isOver = !hasLegalMoves(activePlayer, board) && !hasLegalMoves(notActivePlayer, board);
+		
+	}
+	
+	protected void innitStatics() {
+		Player1 = 1; // IMPORTANT: used as a constant in Tree constructor
+		Player2 = 2; 
+		Empty = 0;
+	}
+	
+	private byte[][] innitBoard() {
 		/*
 		 * Return board starting position
 		 */
-		 int [][] emptyBoard = new int[8][8];
-		 emptyBoard[3][4] = Player1;
-		 emptyBoard[4][3] = Player1;
-		 emptyBoard[3][3] = Player2;
-		 emptyBoard[4][4] = Player2;
+		byte [][] emptyBoard = new byte[8][8];
+		emptyBoard[3][4] = Player1;
+		emptyBoard[4][3] = Player1;
+		emptyBoard[3][3] = Player2;
+		emptyBoard[4][4] = Player2;
 		 
-		 return emptyBoard;
+		return emptyBoard;
 	}
 	
 	public String toString() {
 		return Arrays.deepToString(board).replace("], ", "],\n");
 	}
 	
-	public boolean odigraj(Poteza poteza) {	
-		if (!((0 <= poteza.getX()) &&  (poteza.getX() < 8) && (0 <= poteza.getY()) && (poteza.getY() < 8))) return false;
-		if (board[poteza.getX()][poteza.getY()] != Empty) return false;
+	
+	public static byte[][] makeMove (byte player, Poteza poteza, byte[][] board) {
+		// Return copy of board after player player makes the move poteza on board board
+		// If the move is deemed illegal throw an exception
 		
-		List<Poteza> toFlip = findFlips(poteza);
+		// TODO: Should copy board
+	    byte[][] newBoard = new byte[board.length][];
+	    // Copying elements of arr1[ ] to arr2[ ] using the clone() method
+	       for(int i = 0; i < board.length; i++) {
+	    	   newBoard[i] =  board[i].clone();	    	   
+	       }
+
+		
+		if (!((0 <= poteza.getX()) &&  (poteza.getX() < 8) && (0 <= poteza.getY()) && (poteza.getY() < 8))) throw new IllegalArgumentException("Illegal move");
+		if (newBoard[poteza.getX()][poteza.getY()] != Empty) throw new IllegalArgumentException("Illegal move");
+		
+		List<Poteza> toFlip = findFlips(poteza, player, newBoard);
+		
 		if (toFlip.size() > 0 ) {
 
-			board[poteza.getX()][poteza.getY()] = activePlayer;
+			newBoard[poteza.getX()][poteza.getY()] = player;
 
 			for (Poteza p : toFlip) {
-				turnStone(p);
+				turnStone(p, newBoard);
 			}
 
-			if (hasLegalMoves(notActivePlayer, board)) {
-				
-				flipPlayers();				
-			} else if (! hasLegalMoves(board)) {
-				// Ko se zgodi da noben igralec nima veljavnih potez je igre konec
-				
-				endGame(board);
-			}			
-			return true;
+			
 		}
 		
-		return false;
+		return newBoard;
+
 	}
 	
-	private boolean turnStone(Poteza p) {
+	public boolean odigraj(Poteza poteza) {
+		board = makeMove(activePlayer, poteza, board);
+
+		if (hasLegalMoves(notActivePlayer, board)) {
+			
+			flipPlayers();				
+		} else if (! hasLegalMoves(activePlayer, board)) {
+			// Ko se zgodi da noben igralec nima veljavnih potez je igre konec
+			
+			endGame();
+		}			
+		return true;
+	}
+	
+	private static byte[][] turnStone(Poteza p, byte[][] board) {
 		/*
 		 * Changes stone on (x, y) from Player1 to Player2 or vice versa.
 		 * Does nothing if (x, y) is empty.
-		 * Returns true if it flipped a stone, false otherwise.
 		 */
 		
 		int x = p.getX();
@@ -113,29 +184,29 @@ public class Igra {
 		
 		if (board[x][y] == Player1) { 
 			board[x][y] = Player2;
-			return true;
+			return board;
 		} else if (board[x][y] == Player2) { 
 			board[x][y] = Player1;
-			return true;
+			return board;
 		}
 		
-		return false;
+		return board;
 	}
 	
-	private int flipPlayers() {
+	private byte flipPlayers() {
 		/*
 		 * Swaps active and not active player.
 		 * Returns new active player.
 		 */
 		
-		int temp = activePlayer;
+		byte temp = activePlayer;
 		activePlayer = notActivePlayer;
 		notActivePlayer = temp;
 		
 		return activePlayer;
 	}
 
-	private List<Poteza> findFlips(Poteza p, int player) {
+	private static List<Poteza> findFlips(Poteza p, int player, byte[][] board) {
 		/*
 		 * Returns all stones that are to be flipped if player would play a move on (x, y)
 		 */
@@ -179,14 +250,7 @@ public class Igra {
 		return toFlip;
 	}
 	
-	private List<Poteza> findFlips(Poteza p) {
-		/*
-		 * Default to active player
-		 */
-		return findFlips(p, activePlayer);
-	}
-	
-	private int[][][] numberOfValidMoves(int[][] board) {
+	private static int[][][] numberOfValidMoves(byte[][] board) {
 		/*
 		 * Sestavi 8x8x2 matriko, ki ima na (i, j, k)-tem mestu število, ki nam pove koliko kamenčkov obrne poteza igralca (k + 1),
 		 * če ta postavi kamenček na (i, j)-to mesto.
@@ -194,7 +258,7 @@ public class Igra {
 		 */
 		
 		int[][][] boardNew = new int[8][8][2];
-		int[] igralca = {1, 2};
+		byte[] igralca = {1, 2};
 		
 		for (int x=0; x<8; x++) {
 			for (int y=0; y<8; y++) {
@@ -203,7 +267,7 @@ public class Igra {
 				
 				for (int igr : igralca) {
 					
-					int n = findFlips(new Poteza(x, y), igr).size();
+					int n = findFlips(new Poteza(x, y), igr, board).size();
 					boardNew[x][y][igr-1] = n;
 					
 				}
@@ -212,7 +276,7 @@ public class Igra {
 		return boardNew;
 	}
 
-	private boolean[][] legalForPlayer(int player, int[][] board) {
+	private static boolean[][] legalForPlayer(byte player, byte[][] board) {
 		/*
 		 * Sestavi 8x8 matriko boolean vrednosti, ki nam pove, če na določeno mesto igralec "player" lahko igra potezo.
 		 */
@@ -229,13 +293,8 @@ public class Igra {
 		}
 		return boolBoard;
 	}	
-
-	private boolean[][] legalForPlayer(int[][] board) {
-		return legalForPlayer(activePlayer, board);
-	}
-
 	
-	private boolean hasLegalMoves(int player, int[][] board) {
+	private static boolean hasLegalMoves(byte player, byte[][] board) {
 		/*
 		 * Returns true if player has legal moves or false otherwise
 		 */
@@ -251,15 +310,17 @@ public class Igra {
 		return false;
 		
 	}
-	
-	private boolean hasLegalMoves(int[][] board) {
-		return hasLegalMoves(activePlayer, board);
-	}
 
-	private int endGame(int[][] board) {
+	private void endGame() {
 		/*
-		 * Nastavi final score in vrne zmagovalca
+		 * Nastavi final score in spremeni isOver
 		 */
+		setFinalScore();
+		
+		isOver = true;
+	}
+	
+	private void setFinalScore() {
 		finalScoreP1 = 0;
 		finalScoreP2 = 0;
 		
@@ -273,17 +334,6 @@ public class Igra {
 			}
 		}
 
-		isOver = true;
-		
-		if (finalScoreP1 > finalScoreP2) {
-			return Player1;
-		} else if (finalScoreP1 < finalScoreP2) {
-			return Player2;
-		} else {
-			// Izenačeno
-			return 3;
-		}
-		
 	}
 	
 }

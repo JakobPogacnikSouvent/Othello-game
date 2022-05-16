@@ -1,6 +1,5 @@
 package inteligenca;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -8,6 +7,22 @@ import logika.Igra;
 import splosno.Poteza;
 
 public class AI {
+	
+	Tree searchTree;
+	Tree root;
+	
+	
+	public AI(byte[][] zacetnoStanje) {
+		searchTree = new Tree(zacetnoStanje);
+		root = searchTree;
+	}
+	
+	public AI(Tree t) {
+		searchTree = t;
+		root = searchTree;
+	}
+	
+	
 	public void makeMove(Igra i) {
 		if (! i.getIsOver()) {
 			Poteza p = randomFindPoteza(i);
@@ -16,20 +31,13 @@ public class AI {
 	}
 	
 	private Poteza randomFindPoteza(Igra i) {
-		boolean[][] legalMoves = i.getLegalMoves();
 		
-		List<Poteza> possible = new ArrayList<Poteza>();
-		
-		for (int x=0; x<8; x++) {
-			for (int y=0; y<8; y++) {
-				if (legalMoves[x][y]) {
-					possible.add(new Poteza(x, y));
-				}
-			}
-		}
+		List<Poteza> possible = Igra.getLegalMovesList(i.getActivePlayer(), i.getBoard());
+
 		
 		Random rand = new Random();
 	    return possible.get(rand.nextInt(possible.size()));
 		
 	}
+
 }
