@@ -10,8 +10,8 @@ public class IgraTest {
 		Igra b = new Igra();
 		print(b);
 		
-		AI george = new AI(b.getBoard());
-		
+		AI carlos = new AI(b.getBoard());
+		/*
 		System.out.println(b.odigraj(new Poteza(3,2)));
 		print(b);
 		
@@ -29,14 +29,15 @@ public class IgraTest {
 
 		igraj(-20,20,b);
 		print(b);
-		
+		*/
 		System.out.println("========================");
 		
 		while (! b.getIsOver()) {
-			george.makeMove(b);			
+			carlos.makeMove(b);
+			print(b);
 		}
-		print(b);
-		
+		System.out.println(b.getWinner());
+		carlos.saveTree();
 	}
 	
 	private static void print(Igra x) {

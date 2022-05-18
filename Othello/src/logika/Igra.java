@@ -73,7 +73,7 @@ public class Igra {
 		} else if (finalScoreP1 < finalScoreP2) {
 			return Player2;
 		} else {
-			// Izenačeno
+			// IzenaÄ�eno
 			return 3;
 		}
 	}
@@ -92,15 +92,19 @@ public class Igra {
 	public Igra(byte[][] board, byte activePlayer) {
 		// Create a game object from existing board state
 		innitStatics();
-		
+
 		this.activePlayer = activePlayer;
-		this.notActivePlayer = (byte) ((activePlayer % 2) + 1);
-		
+		this.notActivePlayer = (byte) ((activePlayer % 2) + 1);			
+
 		this.board = board;
 		
-		// If game is created from existing board state it is possible for it to be created in a finished state
-		isOver = !hasLegalMoves(activePlayer, board) && !hasLegalMoves(notActivePlayer, board);
-		
+		if (!hasLegalMoves(activePlayer, board)) {
+			if (!hasLegalMoves(notActivePlayer, board)) {
+				isOver = true;
+			} else {
+				flipPlayers();
+			}
+		}		
 	}
 	
 	protected void innitStatics() {
@@ -137,8 +141,7 @@ public class Igra {
 	       for(int i = 0; i < board.length; i++) {
 	    	   newBoard[i] =  board[i].clone();	    	   
 	       }
-
-		
+	       
 		if (!((0 <= poteza.getX()) &&  (poteza.getX() < 8) && (0 <= poteza.getY()) && (poteza.getY() < 8))) throw new IllegalArgumentException("Illegal move");
 		if (newBoard[poteza.getX()][poteza.getY()] != Empty) throw new IllegalArgumentException("Illegal move");
 		
@@ -252,9 +255,9 @@ public class Igra {
 	
 	private static int[][][] numberOfValidMoves(byte[][] board) {
 		/*
-		 * Sestavi 8x8x2 matriko, ki ima na (i, j, k)-tem mestu število, ki nam pove koliko kamenčkov obrne poteza igralca (k + 1),
-		 * če ta postavi kamenček na (i, j)-to mesto.
-		 * NE POZABI: Igralcema pripadata števili 1 in 2, zato dobimo zamik pri tretji komponenti matrike.
+		 * Sestavi 8x8x2 matriko, ki ima na (i, j, k)-tem mestu Å¡tevilo, ki nam pove koliko kamenÄ�kov obrne poteza igralca (k + 1),
+		 * Ä�e ta postavi kamenÄ�ek na (i, j)-to mesto.
+		 * NE POZABI: Igralcema pripadata Å¡tevili 1 in 2, zato dobimo zamik pri tretji komponenti matrike.
 		 */
 		
 		int[][][] boardNew = new int[8][8][2];
@@ -278,7 +281,7 @@ public class Igra {
 
 	private static boolean[][] legalForPlayer(byte player, byte[][] board) {
 		/*
-		 * Sestavi 8x8 matriko boolean vrednosti, ki nam pove, če na določeno mesto igralec "player" lahko igra potezo.
+		 * Sestavi 8x8 matriko boolean vrednosti, ki nam pove, Ä�e na doloÄ�eno mesto igralec "player" lahko igra potezo.
 		 */
 		
 		boolean[][] boolBoard = new boolean[8][8];
@@ -294,7 +297,7 @@ public class Igra {
 		return boolBoard;
 	}	
 	
-	private static boolean hasLegalMoves(byte player, byte[][] board) {
+	public static boolean hasLegalMoves(byte player, byte[][] board) {
 		/*
 		 * Returns true if player has legal moves or false otherwise
 		 */
