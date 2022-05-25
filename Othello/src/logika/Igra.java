@@ -23,6 +23,7 @@ public class Igra {
 	private byte[][] board;
 
 	private boolean isOver;
+		
 	
 	public byte[][] getBoard() {
 		return board;
@@ -111,6 +112,7 @@ public class Igra {
 		Player1 = 1; // IMPORTANT: used as a constant in Tree constructor
 		Player2 = 2; 
 		Empty = 0;
+		
 	}
 	
 	private byte[][] innitBoard() {

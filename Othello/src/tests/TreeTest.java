@@ -24,8 +24,10 @@ public class TreeTest {
 		
 		printchld(t);
 		
-		System.out.println(t.toString());
-		t.saveTree("TreeTest.txt");
+		System.out.println(t.toStringDepth10());
+		t.saveTreeDepth10("TreeTest.txt");
+		
+		Tree.loadTree("TreeTest.txt");
 		
 	}
 	

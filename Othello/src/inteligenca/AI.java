@@ -15,6 +15,8 @@ public class AI {
 	public AI(byte[][] zacetnoStanje) {
 		searchTree = new Tree(zacetnoStanje);
 		root = searchTree;
+		
+		root.cycle(); // To immediatelly add children so update root can immediatelly be called and he is able to start as second player
 	}
 	
 	public AI(Tree t) {
@@ -23,11 +25,27 @@ public class AI {
 	}
 	
 	
-	public void makeMove(Igra i) {
+	public Poteza makeMoveMCTS(Igra i) {
 		if (! i.getIsOver()) {
 			Poteza p = MCTSFindPoteza(i);
 			System.out.println(p);
 			i.odigraj(p);
+			
+			return p;
+		} else {
+			return null;
+		}
+	}
+	
+	public Poteza makeMoveRandom(Igra i) {
+		if (! i.getIsOver()) {
+			Poteza p = randomFindPoteza(i);
+			System.out.println(p);
+			i.odigraj(p);
+			
+			return p;
+		} else {
+			return null;
 		}
 	}
 	
@@ -37,15 +55,17 @@ public class AI {
 		
 		Random rand = new Random();
 	    return possible.get(rand.nextInt(possible.size()));
-		
 	}
 	
 	private Poteza MCTSFindPoteza(Igra i) {
 		// TODO: Problem: need to update root after opponent move
+		
 		long startTime = System.currentTimeMillis();
 		long currTime = startTime;
 		
-		while (currTime < startTime + 500) {
+		int thinkingTimeMS = 1000; // Should be 5000 in final release
+		
+		while (currTime < startTime + thinkingTimeMS) {
 			root.cycle();
 			currTime = System.currentTimeMillis();
 
@@ -56,12 +76,17 @@ public class AI {
 		return p;
 	}
 	
-	private void updateRoot(Poteza p) {
+	public void updateRoot(Poteza p) {
 		root = root.getChildren().get(p);
 	}
 	
-	public void saveTree() {
-		searchTree.saveTree("Tree.txt");
+	public void saveRoot() {
+		System.out.println("Saving root...");
+		searchTree.saveTreeDepth10("Tree.txt");
+	}
+	
+	public void resetRoot() {
+		root = searchTree;
 	}
 
 }

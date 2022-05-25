@@ -43,22 +43,42 @@ public class Tree {
 		return nOfWins / nOfSimulations;
 	}
 	
+	public byte getPlayer() {
+		return player;
+	}
+	
 	public Poteza getWinningestMove() {
 		// Returns child with highest win percentage
 		Poteza best = null;
 
 		for (Poteza p : children.keySet()) {
+			if(children.get(p).getnOfSimulations() == 0) continue;
+			
 			if (best == null) {
 				best = p;
 			} else {
-				float pWin = children.get(p).getWinPercentage();
-				float bestWin = children.get(best).getWinPercentage(); 
+				
+				float pWin = 1 - children.get(p).getWinPercentage(); // Assume child is different player
+				if (children.get(p).getPlayer() == this.player) {
+					pWin = 1 - pWin;
+				}
+				
+				float bestWin = 1- children.get(best).getWinPercentage(); // Asusme child is different player
+				if (children.get(p).getPlayer() == this.player) {
+					bestWin = 1 - bestWin;
+				}
 				
 				// move c is better if it has a higher win percentage or same win percentage with more simulations (means the tree is better explored)
 				if (pWin > bestWin || (pWin == bestWin && children.get(p).getnOfSimulations() > children.get(best).getnOfSimulations())) {
 					best = p;
 				}
 			}
+		}
+		
+		if (best == null) {
+			Random generator = new Random();
+			Object[] values = children.keySet().toArray();
+			return (Poteza) values[generator.nextInt(values.length)];
 		}
 		
 		return best;
@@ -221,6 +241,18 @@ public class Tree {
 	}
 	*/
 	
+	public void saveTreeDepth10(String filename) {
+		try (PrintWriter out = new PrintWriter(new FileWriter(filename))) {
+			String s = this.toStringDepth10();
+					
+			out.write(s);
+			out.close();
+		} catch (IOException exn) {
+			exn.printStackTrace();
+		}
+
+	}
+	
 	public void saveTree(String filename) {
 		try (PrintWriter out = new PrintWriter(new FileWriter(filename))) {
 			String s = this.toString();
@@ -245,7 +277,50 @@ public class Tree {
 
 	}
 	
+	protected String toStringDepth10(int zamik, int depth) {
+		if (depth >= 10) return "";
+		
+		// String z = new String(new char[zamik]).replace("\0", "-");
+		String z = Integer.toString(zamik);
+		
+		String t = z + ";" + Arrays.deepToString(board) + ";" + Integer.toString(nOfWins) + ";" + Integer.toString(nOfSimulations) + "\n";
+		
+		for (Tree c : children.values()) {
+			t += c.toStringDepth10(++zamik, ++depth);
+		}
+
+		return t;
+	}
+	
+	public String toStringDepth10() {
+		return toStringDepth10(0, 0);
+	}
+		
 	public String toString() {
 		return toString(0);
+	}
+	
+	public static Tree loadTree(String filename) {
+		try (BufferedReader in = new BufferedReader(new FileReader(filename))) {			
+			
+			// runaš stack
+			
+			while (in.ready()) {
+				String[] line = in.readLine().split(";", 0);
+				
+				int zamik = Integer.parseInt(line[0]);
+				int nOfWins = Integer.parseInt(line[2]);
+				int nOfSimulations = Integer.parseInt(line[3]);
+				
+				String[] fields = line[1].replace("[", "").replace("]", "").split(", ", 0);
+				System.out.println(fields[0]);
+			}
+			
+			in.close();
+		} catch (IOException exn) {
+			exn.printStackTrace();
+		}
+
+		return null;
 	}
 }
