@@ -1,6 +1,7 @@
 package tests;
 
 import inteligenca.AI;
+import inteligenca.Tree;
 import logika.Igra;
 import splosno.Poteza;
 
@@ -38,9 +39,9 @@ public class IgraTest {
 		
 
 		int wins = 0;
-		for (int i = 1; i < 2; i++) {
+		for (int i = 1; i < 11; i++) {
 			Igra b = new Igra();			
-			AI carlos = new AI(b.getBoard());
+			AI carlos = new AI(Tree.loadTree("Tree.txt"), 1000);
 			
 			while (! b.getIsOver()) {
 				if (b.getActivePlayer() == 1 + (i % 2)) {
@@ -61,10 +62,12 @@ public class IgraTest {
 		// System.out.println(b.getWinner());
 	}
 	
+	@SuppressWarnings("unused")
 	private static void print(Igra x) {
 		System.out.println(x);
 	}
 	
+	@SuppressWarnings("unused")
 	private static void igraj(int x, int y, Igra b) {
 		try {
 			b.odigraj(new Poteza(x, y));
