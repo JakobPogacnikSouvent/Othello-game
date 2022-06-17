@@ -32,6 +32,16 @@ public class Igra {
 	 **************************************************************************  
 	 */
 	
+	public static int getScore(byte player, byte[][] board) {
+		int c = 0;
+		for (int i = 0; i < 8; ++i) {
+			for (int j = 0; j < 8; ++j) {
+			if (board[i][j] == player)  ++c;
+			}	
+		}
+		return c;
+	}
+	
 	public List<Poteza> getPrejsnjePoteze() {
 		return prejsnjePoteze;
 	}
