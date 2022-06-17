@@ -103,6 +103,8 @@ public class Platno extends JPanel implements MouseListener, MouseMotionListener
 	private int getVisina() {
 		return (int) getHeight();
 	}
+	
+	// Da se izognem večjim nepravilnostim, vs porašunam v naprej.
 	private void nastavi() {
 		lezece = lezece();		
 		sirina = sirinaIgre();
