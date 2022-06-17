@@ -3,7 +3,6 @@ package gui;
 
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -15,7 +14,6 @@ import java.awt.event.MouseMotionListener;
 
 import javax.swing.JPanel;
 
-import hefe.VodjaIgre;
 import logika.Igra;
 import splosno.Poteza;
 
@@ -156,7 +154,8 @@ public class Platno extends JPanel implements MouseListener, MouseMotionListener
 		for (int i = 0; i < 8; ++i) {
 			for (int j = 0; j < 8; ++j) {
 				if (plosca[i][j] != 0) {
-					paintPlayer(g2, i, j, plosca[i][j]);
+					// System.out.println("Printing stone " + i + " " + j);
+					paintPlayer(g2, j, i, plosca[i][j]);
 				}
 			}
 		}
@@ -174,7 +173,7 @@ public class Platno extends JPanel implements MouseListener, MouseMotionListener
 		int y = e.getY();
 		int i = (x - xst) / korak;
 		int j = (y - yst) / korak;
-		if (0 <= i && i < 8 && 0 <= j && j < 8) VodjaIgre.igrajClovekovoPotezo(new Poteza(i, j)); 
+		VodjaIgre.igrajClovekovoPotezo(new Poteza(j, i));
 	}
 	
 

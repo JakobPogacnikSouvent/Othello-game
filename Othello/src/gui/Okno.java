@@ -6,7 +6,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -14,9 +13,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-
-import hefe.VodjaIgre;
-import logika.Igra;
 
 @SuppressWarnings("serial")
 public class Okno extends JFrame implements ActionListener {
@@ -26,7 +22,7 @@ public class Okno extends JFrame implements ActionListener {
 	private JLabel status;
 	private JLabel rez;
 	
-	private JMenuItem menuZazeni, menuOdpri, menuShrani, menuKoncaj;
+	private JMenuItem menuZazeni, menuZazeniCPU1, menuZazeniCPU2, menuOdpri, menuShrani, menuKoncaj;
 	private JMenuItem menuBarvaIgralecEna, menuBarvaIgralecDve, menuBarvaPolja, menuBarvaPredzadje;
 	
 	public Okno() {
@@ -40,13 +36,16 @@ public class Okno extends JFrame implements ActionListener {
 		JMenu menuDatoteka = dodajMenu(menubar, "Igra");
 		JMenu menuNastavitve = dodajMenu(menubar, "Nastavitve");
 				
-		menuZazeni = dodajItem(menuDatoteka, "Zaženi");
+		menuZazeni = dodajItem(menuDatoteka, "Igraj proti človeku");
+		menuZazeniCPU1 = dodajItem(menuDatoteka, "Igraj proti računalniku kot beli");
+		menuZazeniCPU2 = dodajItem(menuDatoteka, "Igraj proti računalniku kot črni");
 		menuKoncaj = dodajItem(menuDatoteka, "Zapri program");
 				
 		menuBarvaIgralecEna = dodajItem(menuNastavitve, "Nastavi barvo prvega igralca.");
 		menuBarvaIgralecDve = dodajItem(menuNastavitve, "Nastavi barvo drugega igralca.");
 		menuBarvaPolja = dodajItem(menuNastavitve, "Nastavi barvo polj.");
 		menuBarvaPredzadje = dodajItem(menuNastavitve, "Nastavi barvo mreže.");
+		
 		// Glavna plošča
 		JPanel glavnaPlosca = new JPanel();
 		glavnaPlosca.setLayout(new BoxLayout(glavnaPlosca, BoxLayout.Y_AXIS));
@@ -89,15 +88,22 @@ public class Okno extends JFrame implements ActionListener {
 		else {
 			byte porocilo = VodjaIgre.igra.getWinner();
 			if (porocilo == 0) {
+				
 				byte id = VodjaIgre.igra.getActivePlayer();
-				status.setText("Na potezi je " + id);
-				byte[][] board = VodjaIgre.igra.getBoard();
-				int prvi = Igra.getScore((byte) 1, board);
-				int drugi = Igra.getScore((byte)2, board);
+				
+				if (id == 1) {
+					status.setText("Na potezi je Črni (P1)");					
+				} else if (id == 2) {
+					status.setText("Na potezi je Beli (P2)");										
+				}
+
+				int prvi = VodjaIgre.igra.getScoreP1();
+				int drugi = VodjaIgre.igra.getScoreP2();
+				
 				rez.setText(prvi + " || " + drugi);
 			}
-			else if (porocilo == 1) status.setText("Zmagal je igralec 1!");
-			else if (porocilo == 2) status.setText("Zmagal je igralec 2!");
+			else if (porocilo == 1) status.setText("Zmagal je Črni (P1)!");
+			else if (porocilo == 2) status.setText("Zmagal je Beli (P2)!");
 			else status.setText("Izenačenje?! :O");
 		}
 		platno.repaint();
@@ -124,7 +130,11 @@ public class Okno extends JFrame implements ActionListener {
 		Object source = e.getSource();
 		if (source == menuZazeni) {
 			VodjaIgre.igramoNovoIgro();
-		} 
+		} else if (source == menuZazeniCPU1){
+			VodjaIgre.igramoNovoIgroCPU((byte) 1);
+		}else if (source == menuZazeniCPU2){
+			VodjaIgre.igramoNovoIgroCPU((byte) 2);
+		}
 		else if (source == menuOdpri) {
 			//TODO
 		}

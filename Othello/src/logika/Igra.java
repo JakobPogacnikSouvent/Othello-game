@@ -19,8 +19,8 @@ public class Igra {
 
 	// The following variables are assigned when game ends
 	protected boolean isOver; // true if game has ended
-	protected int finalScoreP1;  // Sum of P1 chips on board
-	protected int finalScoreP2; // Sum of P2 ships on board
+	protected int scoreP1;  // Sum of P1 chips on board
+	protected int scoreP2; // Sum of P2 ships on board
 	
 	// Memorisation of previous moves
 	protected List<Poteza> prejsnjePoteze; // Moves in order they happened
@@ -31,6 +31,14 @@ public class Igra {
 	 *                         GETTERS AND SETTERS                            *
 	 **************************************************************************  
 	 */
+	
+	public int getScoreP1() {
+		return scoreP1;
+	}
+	
+	public int getScoreP2() {
+		return scoreP2;
+	}
 	
 	public static int getScore(byte player, byte[][] board) {
 		int c = 0;
@@ -104,9 +112,9 @@ public class Igra {
 		
 		if (!isOver) return 0;
 		
-		if (finalScoreP1 > finalScoreP2) {
+		if (scoreP1 > scoreP2) {
 			return Player1;
-		} else if (finalScoreP1 < finalScoreP2) {
+		} else if (scoreP1 < scoreP2) {
 			return Player2;
 		} else {
 			// Draw
@@ -385,19 +393,19 @@ public class Igra {
 		/*
 		 * Assigns final score. Assigns isOver to true
 		 */
-		assignFinalScore();
+		assignScore();
 		
 		isOver = true;
 	}
 	
 	
-	protected void assignFinalScore() {
+	protected void assignScore() {
 		/*
-		 * Assigns values to finalScoreP1 and finalScoreP2
+		 * Assigns values to scoreP1 and scoreP2
 		 */
 		
-		finalScoreP1 = 0;
-		finalScoreP2 = 0;
+		scoreP1 = 0;
+		scoreP2 = 0;
 		
 		// For every space on board increase final score for that player
 		
@@ -405,10 +413,10 @@ public class Igra {
 			for (int j=0; j<8; j++) {
 				
 				if (board[i][j] == Player1) {
-					finalScoreP1++;
+					scoreP1++;
 					
 				} else if (board[i][j] == Player2) {
-					finalScoreP2++;
+					scoreP2++;
 				}
 			}
 		}
@@ -466,6 +474,8 @@ public class Igra {
 			
 			endGame();
 		}		
+		
+		assignScore();
 		
 		return true;
 	}
