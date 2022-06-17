@@ -172,7 +172,7 @@ public class Platno extends JPanel implements MouseListener, MouseMotionListener
 		int y = e.getY();
 		int i = (x - xst) / korak;
 		int j = (y - yst) / korak;
-		if (0 <= i && i < 8 && 0 <= j && j < 8) VodjaIgre.igrajClovekovoPotezo(new Poteza(i, j));
+		if (0 <= i && i < 8 && 0 <= j && j < 8) VodjaIgre.igrajClovekovoPotezo(new Poteza(i, j)); 
 	}
 	
 
