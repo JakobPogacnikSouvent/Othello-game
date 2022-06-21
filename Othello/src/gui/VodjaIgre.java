@@ -17,6 +17,7 @@ public class VodjaIgre {
 	
 	public static void igramoNovoIgro() {
 		igra = new Igra();
+		carlos = null;
 		CPU_Player = -1;
 		igramo();
 	}
